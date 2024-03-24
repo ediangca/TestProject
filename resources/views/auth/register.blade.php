@@ -15,7 +15,7 @@ Register
             <div class="col col-sm col-md col-lg ">
                 <div class="card overlay-transparent m-3 text-light">
                     <div class="card-header">
-                        <img class="img-fluid float-end" src="{{asset('img/sia-logo.png')}}" alt="IAS " width="100" height="100">
+                        <img class="img-fluid float-end" src="{{asset('img/logo-icon.png')}}" alt="IAS " width="100" height="100">
                         <h4 class="float-start">Sign Up</h4> 
                     </div>
                     <div class="card-body pt-4">

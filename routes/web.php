@@ -63,12 +63,16 @@ Route::controller(DashboardController::class)->group(function() { //I separated 
 
 Route::controller(DirectoryController::class)->group(function() { //I separated this for index purpose
     Route::group(['prefix' => 'dashboard/directory/'], function(){
-        Route::resource('patient', PatientController::class)->name('index','directory_patient');
-        Route::resource('doctor', DoctorController::class)->name('index','directory_doctor');
-        // Route::get('/doctor', 'doctor')->name('directory_doctor');
+        Route::resource('patients', PatientController::class)->name('index','directory_patient');
+        Route::get('/patients/{id}/edit', [PatientController::class, 'editById'])->name('patients.editById');
+        Route::put('/patients', [PatientController::class, 'updateById'])->name('patients.updateById');
+        Route::delete('/patients', [PatientController::class, 'deleteById'])->name('patients.deleteById');
+        Route::get('/patients/filter', [PatientController::class, 'filter'])->name('patients.filter');
+
+        
+        Route::resource('doctors', DoctorController::class)->name('index','directory_doctor');
+        Route::get('/doctor', 'doctor')->name('directory_doctor');
         Route::get('/items and services', 'item_services')->name('directory_item_services');
         Route::get('/guarrantor', 'guarrantor')->name('directory_guarrantor');
     });
 });
-
-

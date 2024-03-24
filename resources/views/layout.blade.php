@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
 
@@ -12,11 +13,9 @@
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('bootstrap/icons/font/bootstrap-icons.min.css') }}">
     <link href="{{ asset('bootstrap/css/spinner.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
 
-    <script src="{{ asset('bootstrap/js/popper.min.js') }}"></script>
-    <script src="{{ asset('bootstrap/js/jquery.min.js') }}"></script>
-    <script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
 
     <title>{{ config('app.name', 'HIS') }} - @yield('title')</title>
@@ -169,7 +168,7 @@
                         <div class="container-fluid">
                             <a class="navbar-brand" href="{{ URL('/') }}"><img class="img-fluid"
                                     src="{{ asset('img/logo-icon.png') }}" alt="IAS "></a>
-                            <h1>HIS</h1>
+                            {{-- <h1>HIS</h1> --}}
                             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                                 aria-expanded="false" aria-label="Toggle navigation">
@@ -201,8 +200,8 @@
                                         <a class="nav-link" href="{{ URL('/') }}">Contact Us</a>
                                     </li>
                                     <!-- <li class="nav-item">
-                                    <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-                                    </li> -->
+                                        <a class="nav-link disabled" aria-disabled="true">Disabled</a>
+                                        </li> -->
                                 </ul>
                                 <ul class="navbar-nav ms-auto">
                                     @guest
@@ -219,12 +218,13 @@
 
                                             <a class="nav-link dropdown-toggle" href="#" role="button"
                                                 data-bs-toggle="dropdown" aria-expanded="false">
-                                                {{ Auth::user()->name . '' . Auth::user()->user_type }}
+                                                {{ Auth::user()->name }}
                                             </a>
 
                                             <ul class="dropdown-menu">
                                                 <li>
-													<a class="dropdown-item" href="{{ route('dashboard_home') }}">Dashboard</a>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('dashboard_home') }}">Dashboard</a>
                                                 </li>
                                                 <li>
                                                     <a value="logout" class="dropdown-item logout" id="dropdown-item logout"
@@ -277,10 +277,12 @@
     @show
 
     @section('footer')
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                    <p class="text-center mb-0">Powered by {{ config('app.name', 'HIS') }}</p>
+        <div class="container-fluid bg-dark text-light">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <p class="text-center mb-0">Powered by {{ config('app.name', 'HIS') }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -288,6 +290,8 @@
 
 </div>
 <div class="loader"></div>
+
+
 <script type="text/javascript">
     //Tooltip
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -298,7 +302,15 @@
       new bootstrap.Tooltip(tooltip)
     })*/
 </script>
+
+<script src="{{ asset('bootstrap/js/popper.min.js') }}"></script>
+<script src="{{ asset('bootstrap/js/jquery.min.js') }}"></script>
+<script src="{{ asset('bootstrap/js/jquery-3.7.1.min.js') }}"></script>
+<script src="{{ asset('bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('bootstrap/js/fontawesome.js') }}"></script>
 <script src="{{ asset('bootstrap/js/spinner.js') }}"></script>
+
+@yield('script')
 
 </body>
 

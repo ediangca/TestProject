@@ -15,7 +15,7 @@ Login
                 <div class="card overlay-transparent m-3 text-light">
                     <div class="card-header"> 
                         <h4 class="float-start">Sign In</h4>
-                        <img class="img-fluid float-end" src="{{asset('img/sia-logo.png')}}" alt="IAS " width="100" height="100">
+                        <img class="img-fluid float-end" src="{{asset('img/logo-icon.png')}}" alt="IAS " width="100" height="100">
                     </div>
                         <div class="card-body">
                             <form action="{{ route('authenticate') }}" method="post">
