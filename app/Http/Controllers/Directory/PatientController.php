@@ -15,16 +15,48 @@ use Illuminate\Http\Request;
 class PatientController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
+        // $patients = Patient::all();
         if (Auth::check()) {
-            // $patients = Patient::all();
-            $currentDate = now()->format('Y-m-d');
-            $patients = Patient::whereDate('created_at', '>=', $currentDate)
-                ->whereDate('created_at', '<=', $currentDate)->get();
+            // dd($request);
+            if (empty ($request->startDate) && empty ($request->endDate)) {
+                $currentDate = now()->format('Y-m-d');
+                $patients = Patient::whereDate('created_at', '>=', $currentDate)
+                    ->whereDate('created_at', '<=', $currentDate)->get();
+
+                return view('dashboard.patients', ['patients' => $patients]);
+            } else {
+                $startDate = $request->startDate;
+                $endDate = $request->endDate;
+                // dd($request->search, $startDate, $endDate);
+                if (!empty ($request->search)) {
+                    
+                    $search = $request->search;
+
+                    $patients = Patient::where(function ($query) use ($request) {
+                        $query->where('lastname', 'like', '%' . $request->search . '%')
+                            ->orWhere('firstname', 'like', '%' . $request->search . '%')
+                            ->orWhere('middlename', 'like', '%' . $request->search . '%');
+                    })
+                        ->whereDate('created_at', '>=', $startDate)
+                        ->whereDate('created_at', '<=', $endDate)
+                        ->get();
+                    return view('dashboard.patients', ['patients' => $patients])
+                        ->with('search', $search)
+                        ->with('startDate', $startDate)
+                        ->with('endDate', $endDate);
+                }else{
+                    $patients = Patient::whereDate('created_at', '>=', $startDate)
+                    ->whereDate('created_at', '<=', $endDate)
+                    ->get();
+                    return view('dashboard.patients', ['patients' => $patients])
+                        ->with('startDate', $startDate)
+                        ->with('endDate', $endDate);
+                }
+            }
 
             // dd($patients);
-            return view('dashboard.patients', ['patients' => $patients, 'currentDate' => $currentDate]);
         }
 
         return redirect()->route('home')
@@ -61,7 +93,7 @@ class PatientController extends Controller
         // dd($request);
         $patient = Patient::create($data);
         return redirect()->back()
-        ->with('alert', 'Patient Registered successfully!');
+            ->with('alert', 'Patient Registered successfully!');
 
     }
     public function show($id)
@@ -113,7 +145,7 @@ class PatientController extends Controller
                 $patient->save();
 
                 return redirect()->back()
-                ->with('alert', 'Patient Updated successfully!');
+                    ->with('alert', 'Patient Updated successfully!');
             } else {
                 // Handle case where patient is not found
                 return redirect()->back()->withErrors(['error' => 'Patient not found']);
@@ -134,11 +166,17 @@ class PatientController extends Controller
             $patient = Patient::find($pid);
             // Check if patient exists
             if ($patient) {
-                // Update patient properties
+
+                //Implement a checking if account has trasnsaction
+                //If(has transaction)
+                //prompt to inform that the patient is cannot ne delete due to already transactions.
+                //otherwise delete
+
+                // Delete patient properties
                 $patient->delete();
 
                 return redirect()->back()
-                ->with('alert', 'Patient Deleted successfully!');
+                    ->with('alert', 'Patient Deleted successfully!');
             } else {
                 // Handle case where patient is not found
                 return redirect()->back()->withErrors(['error' => 'Patient not found']);

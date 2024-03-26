@@ -4,6 +4,11 @@
     @yield('dashboard-title')
 @endsection
 
+@section('custom-css')
+@parent
+    @yield('custom-css')
+@show
+
 @section('header')
     <div class="modal fade" id="logoutmodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">

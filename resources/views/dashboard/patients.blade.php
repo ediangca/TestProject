@@ -4,10 +4,8 @@
     Patient
 @endsection
 
-
-
-@section('content')
-
+@section('custom-css')
+    @parent
     <style>
         .input-group-append {
             cursor: pointer;
@@ -20,71 +18,74 @@
         }
 
 
-        .table-responsive {
-            table {
+        .patient-table table {
+            width: 100%;
+        }
+
+
+        .patient-table tbody,
+        tr,
+        td {
+            display: block;
+        }
+
+
+        .patient-table tr:after {
+            content: ' ';
+            display: block;
+            visibility: hidden;
+            clear: both;
+        }
+
+        .patient-table tbody {
+            height: 55vh;
+            overflow-y: auto;
+        }
+
+        .patient-table thead {
+            /* fallback */
+        }
+
+        .patient-table tbody td,
+        .patient-table thead th {
+            float: left;
+            height: 10%;
+        }
+
+        @media screen and (min-width: 768px) {}
+
+        @media screen and (max-width: 768px) {
+
+            .patient-table tbody td,
+            .patient-table thead th {
+                height: 20% !important;
                 width: 100%;
             }
+        }
 
-            thead,
-            tbody,
-            tr,
-            td,
-            th {
-                display: block;
-            }
+        /* Styles for screens with a maximum width of 1200 pixels */
+        @media screen and (max-width: 1200px) {
+            /* CSS rules for screens with a maximum width of 1200 pixels */
+        }
 
-            tr:after {
-                content: ' ';
-                display: block;
-                visibility: hidden;
-                clear: both;
-            }
-
-            thead th {
-                height: 30px;
-
-                /*text-align: left;*/
-            }
-
-            tbody {
-                height: 55vh;
-                overflow-y: auto;
-            }
-
-            tbody .data {
-                padding-bottom: 22px
-            }
-
-            thead {
-                /* fallback */
-            }
-
-
-            tbody td,
-            thead th {
-                width: 19.2%;
-                float: left;
-            }
+        /* Styles for screens with a width between 768 and 1200 pixels */
+        @media screen and (min-width: 768px) and (max-width: 1200px) {
+            /* CSS rules for screens with a width between 768 and 1200 pixels */
         }
     </style>
-    <script>
-        $(function() { // Get the current date in the user's timezone
-            var currentDate = new Date();
+@endsection
 
-            // Adjust the date to your desired timezone, if needed
-            // For example, to set it to UTC+0 timezone
-            currentDate.setHours(currentDate.getHours() - currentDate.getTimezoneOffset() / 60);
-
-            // Set the start date and end date inputs
-            document.getElementById('startDate').valueAsDate = currentDate;
-            document.getElementById('endDate').valueAsDate = currentDate;
-        });
-    </script>
+@section('content')
     @parent
 @section('title-entity')
 @endsection
 
 @section('board-content')
+    @if (!session()->has('startDate'))
+        @php
+            $currentDate = date('Y-m-d'); // Format: YYYY-MM-DD
+        @endphp
+    @endif
     {{-- MODAL ADD PATIENT --}}
     <div class="modal fade" id="addpatient" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -213,7 +214,7 @@
                                     <input type="text"
                                         class="form-control  border-end-0 border rounded-pill
                                         @error('ulastname') is-invalid @enderror"
-                                        id="lname" name="ulastname" value="{{ old('lastname') }}"
+                                        id="lname" name="ulastname" value="{{ old('ulastname') }}"
                                         placeholder="Last name" required>
                                     <div class="invalid-feedback">
                                         @if ($errors->has('ulastname'))
@@ -332,23 +333,23 @@
             @method('get')
             <div class="col-12 col-sm-12 col-md col-lg py-1 px-2">
                 <div class="input-group">
-                    <input class="form-control border-end-0 border rounded-pill" type="search"
-                        placeholder="Search Patient Name created on {{ $currentDate }}" id="example-search-input">
+                    <input id="search" class="form-control border-end-0 border rounded-pill" type="search"
+                        name="search"
+                        @if (session()->has('startDate')) placeholder = "Search Patient Name created from {{ $startDate }} to {{ $endDate }}" 
+                        @else 
+                        placeholder = "Search Patient Name created on {{ $currentDate }} only" @endif
+                        value="{{ isset($search) ? $search : '' }}">
                 </div>
             </div>
 
             <div class="col-12 col-sm-12 col-md-5 col-lg-4 justify-content-center d-flex px-auto py-1 px-2">
                 <div class="input-group date w-50 mx-1" id="datepicker">
                     <input id="startDate" name="startDate" class="form-control border-end-0 border rounded-pill"
-                        type="date"
-                        value="
-                        @if (Session::has('startDate')) {{ $startDate }} @endif" />
+                        type="date" value="{{ isset($startDate) ? $startDate : $currentDate }}" />
                 </div>
                 <div class="input-group date w-50 mx-1" id="datepicker">
-                    <input id="endDate" name="startDate" class="form-control border-end-0 border rounded-pill"
-                        type="date"
-                        value="
-                        @if (Session::has('endDate')) {{ $endDate }} @endif" />
+                    <input id="endDate" name="endDate" class="form-control border-end-0 border rounded-pill"
+                        type="date" value="{{ isset($endDate) ? $endDate : $currentDate }}" />
                 </div>
                 <button class="btn btn-outline-secondary border-end-0 border rounded-pill" type="submit">
                     <i class="bi bi-search"></i>
@@ -361,7 +362,7 @@
             <button value="patient-form" class="btn btn-success mx-2" data-bs-toggle="modal"
                 data-bs-target="#addpatient">
                 <i class="bi bi-person-add" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                    data-bs-title="patient-form">
+                    data-bs-title="Add New Patient">
                     New Patient
                 </i>
             </button>
@@ -370,29 +371,47 @@
     <div class="row">
         <div class="col col-md">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover align-middle patient-table">
                     <thead>
-                        <th scope="col">ID</th>
-                        <th scope="col">Fullname</th>
-                        <th scope="col">Birthdate</th>
-                        <th scope="col">Contact</th>
-                        <th scope="col" class="text-center">Action</th>
+                        <th scope="col" style="width: 5%;">
+                            <input class="form-check-input checkAll" type="checkbox" value="" id="checkAll">
+                        </th>
+                        <th scope="col" style="width: 5%;">ID</th>
+                        <th scope="col" style="width: 30%;">Fullname</th>
+                        <th scope="col" style="width: 20%;">Birthdate</th>
+                        <th scope="col" style="width: 20%;">Contact</th>
+                        <th scope="col" style="width: 20%;" class="text-center">Action</th>
                     </thead>
-                    <tbody class="table-group-divider">
+                    <tbody>
                         @foreach ($patients as $patient)
-                            <tr scope="row">
-                                <td class="data dataId" value="{{ $patient->id }}">{{ $patient->id }}</td>
-                                <td class="data">{{ $patient->lastname }}, {{ $patient->firstname }}
+                            <tr>
+                                <td scope="row" style="width: 5%;">
+                                    <input class="form-check-input check{{ $patient->id }}" type="checkbox"
+                                        value="" id="check{{ $patient->id }}">
+                                </td>
+                                <td style="width: 5%;">{{ $patient->id }}
+                                </td>
+                                <td style="width: 30%;">{{ $patient->lastname }}, {{ $patient->firstname }}
                                     {{ $patient->middlename }}</td>
-                                <td class="data">{{ $patient->birthdate }}</td>
-                                <td class="data">+63{{ $patient->contactNo }}</td>
-                                <td class="text-center">
-                                    <button type="button" value="{{ $patient->id }}"
-                                        class="btn btn-outline-secondary editBtn{{ $patient->id }} p-1">
-                                        <i class="bi bi-pencil-square"></i>
+                                <td style="width: 20%;">{{ $patient->birthdate }}</td>
+                                <td style="width: 20%;">+63{{ $patient->contactNo }}</td>
+                                <td style="width: 20%;" class="text-center">
+                                    <button onclick="editPatient({{ $patient->id }})"
+                                        class="btn btn-outline-secondary p-1 m-1">
+                                        <i class="bi bi-pencil-square" data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom" data-bs-title="Edit"></i>
                                     </button>
-                                    <button onclick="deletePatient({{ $patient->id }})" class="btn btn-danger p-1">
-                                        <i class="bi bi-trash"></i>
+                                    <button onclick="deletePatient({{ $patient->id }})" class="btn btn-danger p-1 m-1">
+                                        <i class="bi bi-trash" data-bs-toggle ="tooltip" 
+                                            data-bs-placement="bottom" data-bs-title="Delete"></i>
+                                    </button>
+                                    <button onclick="" class="btn btn-primary p-1 m-1">
+                                        <i class="bi bi-person-square" data-bs-toggle ="tooltip"
+                                            data-bs-placement="bottom" data-bs-title="Profile"></i>
+                                    </button>
+                                    <button onclick="" class="btn btn-warning p-1 m-1">
+                                        <i class="bi bi-journals" data-bs-toggle ="tooltip" data-bs-placement="bottom"
+                                            data-bs-title="History"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -404,59 +423,7 @@
     </div>
 @endsection <!-- END SECTION OF BOARD CONTENT-->
 
-@foreach ($patients as $patient)
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Select the button
-            var editBtn = document.querySelector('.editBtn' + {{ $patient->id }});
 
-            // Add click event listener for Edit Button
-            editBtn.addEventListener('click', function() {
-                // Show the modal
-                var pid = $(this).val();
-                //alert(pid);
-
-                $.ajax({
-                    type: "GET",
-                    url: "/dashboard/directory/patients/" + pid + "/edit",
-                    success: function(response) {
-                        console.log(response);
-
-                        $('#pid').val(response.id);
-                        $('#lname').val(response.lastname);
-                        $('#fname').val(response.firstname);
-                        $('#mname').val(response.middlename);
-                        $('#bdate').val(response.birthdate);
-                        $('#cNo').val(response.contactNo);
-
-                    },
-                    error: function(xhr, status, error) {
-                        console.error(error); // Log any errors to the console
-                    }
-                });
-                $('#editpatient').modal('show');
-            });
-
-
-        });
-    </script>
-@endforeach
-
-@if (session()->has('update'))
-    <script>
-        // Function to open the modal
-        function openModal() {
-            $('#editpatient').modal('show');
-        }
-    </script>
-@else
-    <script>
-        // Function to open the modal
-        function openModal() {
-            $('#addpatient').modal('show');
-        }
-    </script>
-@endif
 
 @if (session('errors'))
     <script>
@@ -479,25 +446,47 @@
     </script>
 @endif
 
-
 <script>
+    function editPatient(patientId) {
+
+        $.ajax({
+            type: "GET",
+            url: "/dashboard/directory/patients/" + patientId + "/edit",
+            success: function(response) {
+                console.log(response);
+
+                $('#pid').val(response.id);
+                $('#lname').val(response.lastname);
+                $('#fname').val(response.firstname);
+                $('#mname').val(response.middlename);
+                $('#bdate').val(response.birthdate);
+                $('#cNo').val(response.contactNo);
+
+            },
+            error: function(xhr, status, error) {
+                console.error(error); // Log any errors to the console
+            }
+        });
+        $('#editpatient').modal('show');
+    }
+
     function deletePatient(patientId) {
-            //alert(pid);
+        //alert(pid);
 
-            $.ajax({
-                type: "GET",
-                url: "/dashboard/directory/patients/" + patientId + "/edit",
-                success: function(response) {
-                    console.log(response);
+        $.ajax({
+            type: "GET",
+            url: "/dashboard/directory/patients/" + patientId + "/edit",
+            success: function(response) {
+                console.log(response);
 
-                    $('#did').val(response.id);
+                $('#did').val(response.id);
 
-                },
-                error: function(xhr, status, error) {
-                    console.error(error); // Log any errors to the console
-                }
-            });
-            $('#deletepatient').modal('show');
+            },
+            error: function(xhr, status, error) {
+                console.error(error); // Log any errors to the console
+            }
+        });
+        $('#deletepatient').modal('show');
 
     }
 </script>
@@ -512,8 +501,6 @@
         });
     </script>
 @endif
-
-
 @endsection <!-- END SECTION OF CONTENT-->
 
 
