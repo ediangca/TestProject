@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Hash;
 
 class PagesController extends Controller
 {
-    
+
     public function index(){
         return view('index');
     }
     public function dashboard(){
-        return view('dashboard');
+        return view('dashboard.dashboard_layout');
     }
 }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('lastname');
             $table->string('firstname');
             $table->string('middlename');
+            $table->string('gender');
             $table->date('birthdate');
             $table->bigInteger('contactNo');
             $table->timestamps();

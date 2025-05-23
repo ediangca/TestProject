@@ -23,7 +23,7 @@ class PatientController extends Controller
             if (empty ($request->startDate) && empty ($request->endDate)) {
                 $currentDate = now()->format('Y-m-d');
                 $patients = Patient::whereDate('created_at', '>=', $currentDate)
-                    ->whereDate('created_at', '<=', $currentDate)->get();
+                    ->whereDate('created_at', '<=', $currentDate)->paginate(5);
 
                 return view('dashboard.patients', ['patients' => $patients]);
             } else {
@@ -31,7 +31,7 @@ class PatientController extends Controller
                 $endDate = $request->endDate;
                 // dd($request->search, $startDate, $endDate);
                 if (!empty ($request->search)) {
-                    
+
                     $search = $request->search;
 
                     $patients = Patient::where(function ($query) use ($request) {
@@ -41,18 +41,13 @@ class PatientController extends Controller
                     })
                         ->whereDate('created_at', '>=', $startDate)
                         ->whereDate('created_at', '<=', $endDate)
-                        ->get();
-                    return view('dashboard.patients', ['patients' => $patients])
-                        ->with('search', $search)
-                        ->with('startDate', $startDate)
-                        ->with('endDate', $endDate);
-                }else{
+                        ->paginate(5);
+                    return view('dashboard.patients', ['patients' => $patients]);
+                } else {
                     $patients = Patient::whereDate('created_at', '>=', $startDate)
-                    ->whereDate('created_at', '<=', $endDate)
-                    ->get();
-                    return view('dashboard.patients', ['patients' => $patients])
-                        ->with('startDate', $startDate)
-                        ->with('endDate', $endDate);
+                        ->whereDate('created_at', '<=', $endDate)
+                        ->paginate(5);
+                    return view('dashboard.patients', ['patients' => $patients]);
                 }
             }
 
@@ -234,7 +229,7 @@ class PatientController extends Controller
             if ($request->ajax()) {
                 // Perform the deletion
 
-                $patient = Patient::find($patient->id);
+                $patient = Patient::find($request->id);
                 $patient->delete();
 
                 return response()->json(['message' => 'Patient deleted successfully.'], 200);
@@ -246,30 +241,71 @@ class PatientController extends Controller
         return back()->with('error', 'Invalid request.');
     }
 
-    public function filter(Request $request)
+    public function filter(Request $request, $value = "")
     {
         if (Auth::check()) {
-            // $patients = Patient::all();
+            $patients = Patient::all();
+            $content = '';
+            // dd($value);
 
-            $search = $request->search;
+            $search = $value;
             $currentDate = now()->format('Y-m-d');
-            $startDate = $request->input('startDate', $currentDate);
-            $endDate = $request->input('endDate', $currentDate);
+            $startDate = $request->input('startDate');
+            $endDate = $request->input('endDate');
 
-            $patients = Patient::where(function ($query) use ($search, $startDate, $endDate) {
-                $query->where('lastname', 'like', "%$search%")
-                    ->orWhere('firstname', 'like', "%$search%")
-                    ->orWhere('middlename', 'like', "%$search%");
-            })
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereDate('created_at', '>=', $startDate)
-                        ->whereDate('created_at', '<=', $endDate);
+
+            if ($search !== "null") {
+
+                $patients = Patient::where(function ($query) use ($search) {
+                    $query->where('lastname', 'like', '%' . $search . '%')
+                        ->orWhere('firstname', 'like', '%' . $search . '%')
+                        ->orWhere('middlename', 'like', '%' . $search . '%');
                 })
-                ->get();
+                    ->whereDate('created_at', '>=', $startDate)
+                    ->whereDate('created_at', '<=', $endDate)
+                    ->paginate(5);
+                // return response('has search value');
+            } else {
+                $patients = Patient::whereDate('created_at', '>=', $startDate)
+                    ->whereDate('created_at', '<=', $endDate)
+                    ->paginate(5);
+                // return response('empty search');
+            }
 
+            foreach ($patients as $patient) {
+                $content .= '<tr>
+                <td scope="row" style="width: 5%;">
+                    <input class="form-check-input check' . $patient->id . '" type="checkbox"
+                        value="" id="check' . $patient->id . '">
+                </td>
+                <td style="width: 5%;">' . $patient->id . '</td>
+                <td style="width: 30%;">' . $patient->lastname . ' ,' . $patient->firstname . ' ' . $patient->middlename . '</td>
+                <td style="width: 20%;">' . $patient->birthdate . '</td>
+                <td style="width: 20%;">+63.' . $patient->contactNo . '</td>
+                <td style="width: 20%;" class="text-center">
+                    <button onclick="editPatient(' . $patient->id . ')"
+                        class="btn btn-outline-secondary p-1 m-1">
+                        <i class="bi bi-pencil-square" data-bs-toggle="tooltip"
+                            data-bs-placement="bottom" data-bs-title="Edit"></i>
+                    </button>
+                    <button onclick="deletePatient(' . $patient->id . ')" class="btn btn-danger p-1 m-1">
+                        <i class="bi bi-trash" data-bs-toggle ="tooltip" data-bs-placement="bottom"
+                            data-bs-title="Delete"></i>
+                    </button>
+                    <button onclick="" class="btn btn-primary p-1 m-1">
+                        <i class="bi bi-person-square" data-bs-toggle ="tooltip"
+                            data-bs-placement="bottom" data-bs-title="Profile"></i>
+                    </button>
+                    <button onclick="" class="btn btn-warning p-1 m-1">
+                        <i class="bi bi-journals" data-bs-toggle ="tooltip" data-bs-placement="bottom"
+                            data-bs-title="History"></i>
+                    </button>
+                </td>
+            </tr>';
+            }
 
-            return redirect()->route('directory_patient', ['patients' => $patients, 'currentDate' => $currentDate])
-                ->with('startDate', $startDate)->with('endDate', $endDate);
+            return response($content);
+
         }
 
         return redirect()->route('home')

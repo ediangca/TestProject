@@ -333,12 +333,13 @@
             @method('get')
             <div class="col-12 col-sm-12 col-md col-lg py-1 px-2">
                 <div class="input-group">
-                    <input id="search" class="form-control border-end-0 border rounded-pill" type="search"
-                        name="search"
+                    <input id="search" onkeyup="searchPatient()"
+                        class="form-control border-end-0 border rounded-pill search" type="search" name="search"
                         @if (session()->has('startDate')) placeholder = "Search Patient Name created from {{ $startDate }} to {{ $endDate }}" 
                         @else 
                         placeholder = "Search Patient Name created on {{ $currentDate }} only" @endif
                         value="{{ isset($search) ? $search : '' }}">
+
                 </div>
             </div>
 
@@ -351,6 +352,7 @@
                     <input id="endDate" name="endDate" class="form-control border-end-0 border rounded-pill"
                         type="date" value="{{ isset($endDate) ? $endDate : $currentDate }}" />
                 </div>
+                {{-- onclick="searchPatient()" --}}
                 <button class="btn btn-outline-secondary border-end-0 border rounded-pill" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
@@ -369,7 +371,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col col-md">
+        <div class="col col-md text-dark">
             <div class="table-responsive">
                 <table class="table table-hover align-middle patient-table">
                     <thead>
@@ -382,7 +384,7 @@
                         <th scope="col" style="width: 20%;">Contact</th>
                         <th scope="col" style="width: 20%;" class="text-center">Action</th>
                     </thead>
-                    <tbody>
+                    <tbody class="content">
                         @foreach ($patients as $patient)
                             <tr>
                                 <td scope="row" style="width: 5%;">
@@ -402,8 +404,8 @@
                                             data-bs-placement="bottom" data-bs-title="Edit"></i>
                                     </button>
                                     <button onclick="deletePatient({{ $patient->id }})" class="btn btn-danger p-1 m-1">
-                                        <i class="bi bi-trash" data-bs-toggle ="tooltip" 
-                                            data-bs-placement="bottom" data-bs-title="Delete"></i>
+                                        <i class="bi bi-trash" data-bs-toggle ="tooltip" data-bs-placement="bottom"
+                                            data-bs-title="Delete"></i>
                                     </button>
                                     <button onclick="" class="btn btn-primary p-1 m-1">
                                         <i class="bi bi-person-square" data-bs-toggle ="tooltip"
@@ -418,6 +420,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                {{ $patients->links('pagination::bootstrap-5') }}
             </div>
         </div>
     </div>
@@ -487,6 +490,37 @@
             }
         });
         $('#deletepatient').modal('show');
+
+    }
+
+    function searchPatient() {
+        var value = $('#search').val();
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+
+        // alert("Search: " + value +
+        //     "\n startDate: " + startDate +
+        //     "\n endDate: " + endDate
+        // );
+        if (value === null || value === '') {
+            value = "null";
+        }
+        $.ajax({
+            type: "GET",
+            url: "/dashboard/directory/patients/filter/" + value,
+            data: {
+                startDate: startDate,
+                endDate: endDate
+            },
+            success: function(data) {
+                // alert("return Data: "+data);
+                $('.content').html(data).show();
+            },
+            error: function(xhr, status, error) {
+                alert(status);
+                // console.error(error); // Log any errors to the console
+            }
+        });
 
     }
 </script>
